@@ -1,0 +1,78 @@
+import numpy as np
+from sklearn.metrics.pairwise import cosine_similarity
+
+# Sample user-movie ratings matrix
+ratings = np.array([
+    [5, 3, 4, 4, 2],
+    [3, 1, 2, 3, 3],
+    [4, 3, 4, 3, 5],
+    [3, 3, 1, 5, 4],
+    [1, 5, 5, 2, 1]
+])
+
+movie_names = ["salaar", "MANJUMMEL BOYS ", "MAD MOVIE", "LOVER BOY ", "BAHUBALI"]
+
+# Function to calculate the cosine similarity between users
+def calculate_similarity(ratings):
+    return cosine_similarity(ratings)
+
+# Function to get recommendations for a given user
+def get_recommendations(user_index, ratings, similarity_matrix, num_recommendations=2):
+    similar_users = similarity_matrix[user_index]
+    user_ratings = ratings[user_index]
+    
+    # Calculate weighted sum of ratings from similar users
+    weighted_sum = np.zeros(ratings.shape[1])
+    similarity_sum = np.zeros(ratings.shape[1])
+    
+    for other_user_index in range(ratings.shape[0]):
+        if other_user_index != user_index:
+            weighted_sum += ratings[other_user_index] * similar_users[other_user_index]
+            similarity_sum += similar_users[other_user_index]
+    
+    # Avoid division by zero
+    similarity_sum[similarity_sum == 0] = 1
+    
+    # Calculate predicted ratings
+    predicted_ratings = weighted_sum / similarity_sum
+    
+    # Exclude movies already rated by the user
+    predicted_ratings[user_ratings != 0] = 0
+    
+    # Get indices of top recommendations
+    recommendations = np.argsort(predicted_ratings)[::-1][:num_recommendations]
+    return recommendations
+
+# Main function to interact with the user and get recommendations
+def main():
+    # Ask the user to input their ratings
+    new_user_ratings = []
+    print("Please rate the following movies from 1 to 5 (enter 0 if you haven't watched it):")
+    for movie in movie_names:
+        while True:
+            try:
+                rating = int(input(f"{movie}: "))
+                if 0 <= rating <= 5:
+                    new_user_ratings.append(rating)
+                    break
+                else:
+                    print("Please enter a rating between 0 and 5.")
+            except ValueError:
+                print("Please enter a valid integer.")
+    
+    # Add new user's ratings to the ratings matrix
+    global ratings
+    new_user_ratings = np.array(new_user_ratings).reshape(1, -1)
+    ratings = np.vstack([ratings, new_user_ratings])
+    
+    # Calculate the similarity matrix
+    similarity_matrix = calculate_similarity(ratings)
+    
+    # Get recommendations for the new user (last user in the matrix)
+    new_user_index = ratings.shape[0] - 1
+    recommendations = get_recommendations(new_user_index, ratings, similarity_matrix)
+    
+    print(f"Recommendations for you: {[movie_names[i] for i in recommendations]}")
+
+if __name__ == "__main__":
+    main()
