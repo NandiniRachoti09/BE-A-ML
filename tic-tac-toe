@@ -1,0 +1,151 @@
+import math
+
+# Define constants for the players
+HUMAN = -1
+AI = 1
+
+# Define the board
+board = [
+    [0, 0, 0],
+    [0, 0, 0],
+    [0, 0, 0]
+]
+
+# Function to evaluate the board state
+def evaluate(state):
+    if wins(state, AI):
+        return +1
+    elif wins(state, HUMAN):
+        return -1
+    else:
+        return 0
+
+# Function to check if a player has won
+def wins(state, player):
+    win_state = [
+        [state[0][0], state[0][1], state[0][2]],
+        [state[1][0], state[1][1], state[1][2]],
+        [state[2][0], state[2][1], state[2][2]],
+        [state[0][0], state[1][0], state[2][0]],
+        [state[0][1], state[1][1], state[2][1]],
+        [state[0][2], state[1][2], state[2][2]],
+        [state[0][0], state[1][1], state[2][2]],
+        [state[2][0], state[1][1], state[0][2]],
+    ]
+    if [player, player, player] in win_state:
+        return True
+    else:
+        return False
+
+# Function to check for available spots
+def empty_cells(state):
+    cells = []
+    for x, row in enumerate(state):
+        for y, cell in enumerate(row):
+            if cell == 0:
+                cells.append([x, y])
+    return cells
+
+# Function to check if the game is over
+def game_over(state):
+    return wins(state, HUMAN) or wins(state, AI)
+
+# Function to place a move
+def place_move(x, y, player):
+    board[x][y] = player
+
+# Minimax algorithm with Alpha-Beta Pruning
+def minimax(state, depth, alpha, beta, player):
+    if player == AI:
+        best = [-1, -1, -math.inf]
+    else:
+        best = [-1, -1, +math.inf]
+
+    if depth == 0 or game_over(state):
+        score = evaluate(state)
+        return [-1, -1, score]
+
+    for cell in empty_cells(state):
+        x, y = cell
+        state[x][y] = player
+        score = minimax(state, depth - 1, alpha, beta, -player)
+        state[x][y] = 0
+        score[0], score[1] = x, y
+
+        if player == AI:
+            if score[2] > best[2]:
+                best = score
+            alpha = max(alpha, best[2])
+        else:
+            if score[2] < best[2]:
+                best = score
+            beta = min(beta, best[2])
+
+        if alpha >= beta:
+            break
+
+    return best
+
+# Function to get the AI move
+def ai_turn():
+    depth = len(empty_cells(board))
+    if depth == 0 or game_over(board):
+        return
+    move = minimax(board, depth, -math.inf, +math.inf, AI)
+    x, y = move[0], move[1]
+    place_move(x, y, AI)
+
+# Function to get the human move
+def human_turn(x, y):
+    if 0 <= x < 3 and 0 <= y < 3:
+        if board[x][y] == 0:
+            place_move(x, y, HUMAN)
+            return True
+    return False
+
+# Function to print the board
+def print_board(state):
+    symbols = {HUMAN: 'X', AI: 'O', 0: ' '}
+    for row in state:
+        print("|".join(symbols[cell] for cell in row))
+        print("-" * 5)
+
+# Main function to play the game
+def main():
+    print("Human is X, AI is O")
+    print_board(board)
+
+    while True:
+        if len(empty_cells(board)) == 0 or game_over(board):
+            break
+        
+        # Human move
+        while True:
+            try:
+                x, y = map(int, input("Enter your move (row and column, 0-2): ").split())
+                if human_turn(x, y):
+                    break
+                else:
+                    print("Invalid move! Try again.")
+            except ValueError:
+                print("Invalid input! Enter two numbers separated by a space.")
+
+        print_board(board)
+        if game_over(board):
+            break
+
+        # AI move
+        ai_turn()
+        print_board(board)
+        if game_over(board):
+            break
+
+    if wins(board, HUMAN):
+        print("Human wins!")
+    elif wins(board, AI):
+        print("AI wins!")
+    else:
+        print("It's a draw!")
+ 
+if __name__ == "__main__":
+    main()
