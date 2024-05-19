@@ -1,0 +1,47 @@
+Human is X, AI is O
+ | | 
+-----
+ | | 
+-----
+ | | 
+-----
+Enter your move (row and column, 0-2): 0 1
+ |X| 
+-----
+ | | 
+-----
+ | | 
+-----
+O|X| 
+-----
+ | | 
+-----
+ | | 
+-----
+Enter your move (row and column, 0-2): 0 2
+O|X|X
+-----
+ | | 
+-----
+ | | 
+-----
+O|X|X
+-----
+O| | 
+-----
+ | | 
+-----
+Enter your move (row and column, 0-2): 1 1
+O|X|X
+-----
+O|X| 
+-----
+ | | 
+-----
+O|X|X
+-----
+O|X| 
+-----
+O| | 
+-----
+AI wins!
